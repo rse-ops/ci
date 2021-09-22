@@ -4,16 +4,17 @@ jobs:
   test:
     runs-on: ubuntu-latest
     name: Test Cmake Container
+    strategy:
+      fail-fast: true
+    matrix:
+      containerbase: ["gcc-ubuntu-20.04", "clang-ubuntu-20.04", "cuda-ubuntu-20.04"]
+      flags: ["-DENABLE_OPENMP=On", "-DENABLE_OPENMP=On", "-DENABLE_CUDA=On"]
+
+    name: "${{ matrix.containerbase }} ${{ matrix.flags }}"
     steps:
-      - uses: actions/checkout@v2
-      - id: tester
-        uses: ./cmake
-        with:
-          # relative path when cd to cmake
-          dockerfile: Dockerfile
-          context: .
-          workdir: cmake
-
-      - run: echo ${{ steps.tester.outputs.return_code }}
-        shell: bash
-
+    - name: Build and run testing container
+      env:
+        WORKDIR=${{ inputs.workdir }}
+      run: |
+         cd cmake/
+         docker build --build-arg containerbase=ghcr.io/rse-radiuss/${{ matrix.containerbase }} --build-arg flags=${{ matrix.flags }} -t cmake-testing-container ${{ inputs.context }}
