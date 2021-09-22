@@ -1,0 +1,19 @@
+on: [pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Test Cmake Container
+    steps:
+      - uses: actions/checkout@v2
+      - id: tester
+        uses: ./ci
+        with:
+          # relative path when cd to cmake
+          dockerfile: Dockerfile
+          context: .
+          workdir: cmake
+
+      - run: echo ${{ steps.tester.outputs.return_code }}
+        shell: bash
+

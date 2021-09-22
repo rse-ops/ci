@@ -1,0 +1,44 @@
+name: 'RADIUSS CI for Cmake'
+description: "A matrix build to test a Cmake project."
+inputs:
+  dockerfile:
+    description: the path to the test Dockerfile
+    required: false
+    default: Dockerfile
+  fail_fast:
+    required: false
+    default: true
+  workdir:
+    description: the working directory to run the build (Dockerfile should be realtive to it)
+    required: false
+    default: .
+  context:
+    description: the context directory to provide to Docker build (defaults to .)
+    required: false
+    default: .
+
+outputs:
+  return_code:
+    description: "Return code of the test"
+    
+runs:
+  using: "composite"
+  runs-on: ubuntu-latest
+  strategy:
+    fail-fast: ${{ inputs.fail_fast }}
+    matrix:
+      containerbase: ["ghcr.io/rse-radiuss/gcc-ubuntu-20.04", "ghcr.io/rse-radiuss/clang-ubuntu-20.04", "ghcr.io/rse-radiuss/cuda-ubuntu-20.04"]
+      flags: ["-DENABLE_OPENMP=On", "-DENABLE_OPENMP=On", "-DENABLE_CUDA=On"]
+
+  name: "${{ matrix.containerbase }} ${{ matrix.flags }}"
+  steps:
+    - name: Build and run testing container
+      env:
+        WORKDIR=${{ inputs.workdir }}
+      run: |
+         printf "Changing directory to ${WORKDIR}\n"
+         cd ${WORKDIR}
+         docker build -f ${{ inputs.dockerfile }} --build-arg containerbase=${{ matrix.containerbase }} --build-arg flags=${{ matrix.flags }} -t cmake-testing-container ${{ inputs.context }}
+         retval=$?
+         echo ::set-output name=return_code::${retval}
+      shell: bash
