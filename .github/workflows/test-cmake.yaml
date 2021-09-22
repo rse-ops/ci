@@ -6,7 +6,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        containerbase: ["gcc-ubuntu-20.04", "clang-ubuntu-20.04", "cuda-ubuntu-20.04"]
+        containerbase: ["gcc-ubuntu-20.04:cuda-11.4.0", "clang-ubuntu-20.04:llvm-12.0.0", "cuda-ubuntu-20.04:cuda-11.4.0"]
         flags: ["-DENABLE_OPENMP=On", "-DENABLE_OPENMP=On", "-DENABLE_CUDA=On"]
 
     name: "${{ matrix.containerbase }} ${{ matrix.flags }}"
