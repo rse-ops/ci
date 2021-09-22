@@ -2,11 +2,12 @@
 
 ![img/radiuss-ci.png](img/radiuss-ci.png)
 
-This is a set of GitHub Actions that will support building test containers.
+This is a set of example GitHub Actions that will get you started to build
+testing containers for a build strategy of choice. 
 The subfolders here match to different testing frameworks, meaning the defaults
 are optimal for that kind of test.
 
- - [cmake](cmake): An action to support an automated build and test with cmake.
+ - [cmake](cmake): An example of a build matrix for a cmake project.
 
 License
 -------
