@@ -1,4 +1,5 @@
 ARG containerbase=ghcr.io/rse-radiuss/gcc-ubuntu-20.04
+FROM ${containerbase}
 ARG flags=""
 ENV extra_flags=${flags}
 FROM ${containerbase} AS gcc
