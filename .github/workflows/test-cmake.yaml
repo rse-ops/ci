@@ -12,8 +12,6 @@ jobs:
     name: "${{ matrix.containerbase }} ${{ matrix.flags }}"
     steps:
     - name: Build and run testing container
-      env:
-        WORKDIR=${{ inputs.workdir }}
       run: |
          cd cmake/
          docker build --build-arg containerbase=ghcr.io/rse-radiuss/${{ matrix.containerbase }} --build-arg flags=${{ matrix.flags }} -t cmake-testing-container ${{ inputs.context }}
