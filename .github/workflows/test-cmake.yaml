@@ -1,0 +1,20 @@
+on: [pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        containerbase: ["gcc-ubuntu-20.04:gcc-9.4.0", "clang-ubuntu-20.04:llvm-10.0.0", "cuda-ubuntu-20.04:cuda-10.1.243"]
+        flags: ["-DENABLE_OPENMP=On", "-DENABLE_OPENMP=On", "-DENABLE_CUDA=On"]
+
+    name: "${{ matrix.containerbase }} ${{ matrix.flags }}"
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build and run testing container
+      run: |
+         cd cmake/
+         command="docker build --build-arg containerbase=ghcr.io/rse-radiuss/${{ matrix.containerbase }} --build-arg flags=${{ matrix.flags }} -t cmake-testing-container ."
+         printf "${command}\n"
+         ${command}
