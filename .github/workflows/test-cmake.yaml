@@ -7,7 +7,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - id: tester
-        uses: ./ci
+        uses: cmake/
         with:
           # relative path when cd to cmake
           dockerfile: Dockerfile
