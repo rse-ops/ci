@@ -16,4 +16,4 @@ jobs:
       run: |
          cd cmake/
          printf "docker build --build-arg containerbase=ghcr.io/rse-radiuss/${{ matrix.containerbase }} --build-arg flags=${{ matrix.flags }} -t cmake-testing-container .\n"
-         docker build --build-arg containerbase=ghcr.io/rse-radiuss/${{ matrix.containerbase }} --build-arg flags=${{ matrix.flags }} -t cmake-testing-container .
+         docker build --build-arg containerbase="ghcr.io/rse-radiuss/${{ matrix.containerbase }}" --build-arg flags=${{ matrix.flags }} -t cmake-testing-container .
