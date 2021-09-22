@@ -12,7 +12,7 @@ and associated GitHub action:
  - run make (or cmake --build .)
  - run ctest
 
-## 1. Create a Dockerfile
+## 2. Create a Dockerfile
 
 You'll first want to create a Dockerfile. Typically this means something like the following:
 
@@ -43,12 +43,12 @@ The first argument, `containerbase` is an example of choosing a base image. Sinc
 we will be able to populate it using different base images. For the default value (`ghcr.io/rse-radiuss/gcc-ubuntu-20.04:gcc-11.2.0`) you should choose the one that you want the Dockerfile to build if no build argument
 is provided. This is true for any build argument (e.g., also flags).
 
-## 2. Choose Base Images
+## 3. Choose Base Images
 
 You can choose one or more base images from the [rse-radiuss](https://rse-radiuss.github.io/docker-images/)
 library. Each comes with spack pre-installed, along with a compiler/version of your choice.
 
-## 3. Create GitHub Action
+## 4. Create GitHub Action
 
 The GitHub action is fairly simple, and you likely want the trigger to be on a pull request to test changes.
 You can use the example below as a template, and remove comments as needed.
@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
 
-      # Failing fast means if one job fails, we cancelt the rest
+      # Failing fast means if one job fails, we cancel the rest
       fail-fast: true
 
       # Here is our build matrix. We will build each entry in container with each entry in flags, for a total of 3x3=9
