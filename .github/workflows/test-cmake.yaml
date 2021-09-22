@@ -6,9 +6,9 @@ jobs:
     name: Test Cmake Container
     strategy:
       fail-fast: true
-    matrix:
-      containerbase: ["gcc-ubuntu-20.04", "clang-ubuntu-20.04", "cuda-ubuntu-20.04"]
-      flags: ["-DENABLE_OPENMP=On", "-DENABLE_OPENMP=On", "-DENABLE_CUDA=On"]
+      matrix:
+        containerbase: ["gcc-ubuntu-20.04", "clang-ubuntu-20.04", "cuda-ubuntu-20.04"]
+        flags: ["-DENABLE_OPENMP=On", "-DENABLE_OPENMP=On", "-DENABLE_CUDA=On"]
 
     name: "${{ matrix.containerbase }} ${{ matrix.flags }}"
     steps:
