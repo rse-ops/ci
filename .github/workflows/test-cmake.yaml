@@ -3,7 +3,6 @@ on: [pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-    name: Test Cmake Container
     strategy:
       fail-fast: true
       matrix:
