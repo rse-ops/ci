@@ -1,20 +1,72 @@
 on: [pull_request]
 
 jobs:
-  test:
+  generate:
+    name: Generate Build Matrix
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-      matrix:
-        containerbase: ["gcc-ubuntu-20.04:gcc-9.4.0", "clang-ubuntu-20.04:llvm-10.0.0", "cuda-ubuntu-20.04:cuda-10.1.243"]
-        flags: ["-DENABLE_OPENMP=On", "-DENABLE_OPENMP=On", "-DENABLE_CUDA=On"]
+    outputs:
+      dockerbuild_matrix: ${{ steps.dockerbuild.outputs.dockerbuild_matrix }}
+      empty_matrix: ${{ steps.dockerbuild.outputs.dockerbuild_matrix_empty }}
 
-    name: "${{ matrix.containerbase }} ${{ matrix.flags }}"
     steps:
     - uses: actions/checkout@v2
-    - name: Build and run testing container
+      with:
+         fetch-depth: 0
+
+    - name: Generate Build Matrix
+      uses: vsoch/uptodate@main
+      id: dockerbuild
+      with: 
+        root: .
+        parser: dockerbuild
+        flags: "--registry ghcr.io/rse-radiuss"
+
+    - name: View and Check Build Matrix Result
+      env:
+        result: ${{ steps.dockerbuild.outputs.dockerbuild_matrix }}
       run: |
-         cd cmake/
-         command="docker build --build-arg containerbase=ghcr.io/rse-radiuss/${{ matrix.containerbase }} --build-arg flags=${{ matrix.flags }} -t cmake-testing-container ."
-         printf "${command}\n"
-         ${command}
+        echo ${result}
+        if [[ "${result}" == "[]" ]]; then
+          printf "The matrix is empty, will not trigger next workflow.\n"
+        else
+          printf "The matrix is not empty, and we should continue on to the next workflow.\n"
+        fi
+
+  test:
+    needs:
+    - generate
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        result: ${{ fromJson(needs.generate.outputs.dockerbuild_matrix) }}
+    if: ${{ needs.generate.outputs.empty_matrix == 'false' }}
+
+    name: "Build ${{ matrix.result.container_name }}"
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Make Space For Build
+      run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+
+    - name: Build ${{ matrix.result.container_name }}
+      id: builder
+      env:
+        container: ${{ matrix.result.container_name }}
+        prefix: ${{ matrix.result.command_prefix }}
+        filename: ${{ matrix.result.filename }}
+      run: |
+        basedir=$(dirname $filename)
+        printf "Base directory is ${basedir}\n"
+        # Get relative path to PWD and generate dashed name from it
+        cd $basedir
+        echo "${prefix} -t ${container} ."
+        ${prefix} -t ${container} .
+        echo ::set-output name=uri::${container}
+        echo ::set-output name=dockerfile_dir::${basedir}
