@@ -17,9 +17,8 @@ jobs:
       uses: vsoch/uptodate@main
       id: dockerbuild
       with: 
-        root: .
+        root: cmake
         parser: dockerbuild
-        flags: "--registry ghcr.io/rse-radiuss"
 
     - name: View and Check Build Matrix Result
       env:
@@ -34,7 +33,7 @@ jobs:
 
   test:
     needs:
-    - generate
+      - generate
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
