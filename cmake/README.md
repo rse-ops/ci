@@ -50,8 +50,28 @@ library. Each comes with spack pre-installed, along with a compiler/version of y
 
 ## 4. Create GitHub Action
 
-The GitHub action is fairly simple, and you likely want the trigger to be on a pull request to test changes.
-You can use the example below as a template, and remove comments as needed.
+There are two possible ways to create the GitHub action, and it depends on if you
+want to create all permutations of a matrix (you can use native GitHub actions) or you
+want a 1:1 mapping of a matrix (e.g., in the matrix everything at index 1 builds with the
+other arguments at index 1, and all build args must be the same lenth. We will discuss and show both
+options here.
+
+### GitHub Action Matrix
+
+The GitHub actions matrix will build all permutations of the matrix. E.g.,:
+
+```yaml
+ - letter: [A, B, C]
+ - number: [1, 2, 3]
+```
+
+will build:
+
+```
+A1 A2 A3 B1 B2 B3 C1 C2 C3
+```
+
+So you can use it if this kind of combination is possible for your builds. This approach is fairly simple because no additional actions or dependencies are required. You likely want the trigger to be on a pull request to test changes.  Here is an example:
 
 ```yaml
 on: [pull_request]
@@ -85,5 +105,99 @@ jobs:
          ${command}
 ```
 
-You can add this file (name it something appropriate like `container-test.yaml`) to .github/workflows
-in your repository, and it will trigger and run the tests in parallel. It's that easy!
+To reiterate what was said above, for the matrix shown above, we will generate a build for every permutation, meaning 3 container bases (`containerbase`) by 3 flags for a total of 3x3=9 builds. This only works if you can use every combination. If not, you likely want an [uptodate](https://github.com/vsoch/uptodate) matrix, shown next.
+
+### Column-wise Matrix
+
+Let's say that you have build args (like a container base and then compile flags) and you cannot build all combinations together. To adjust our previous example, with this matrix strategy
+
+```yaml
+ - letter: [A, B, C]
+ - number: [1, 2, 3]
+```
+
+will build:
+
+```
+A1 B2 C3
+```
+
+This GitHub actions workflow is slightly longer because we need a first job to generate the matrix for us, and to check if it's empty, etc.
+
+```yaml
+on: [pull_request]
+
+jobs:
+  generate:
+    name: Generate Build Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      dockerbuild_matrix: ${{ steps.dockerbuild.outputs.dockerbuild_matrix }}
+      empty_matrix: ${{ steps.dockerbuild.outputs.dockerbuild_matrix_empty }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Generate Build Matrix
+      uses: vsoch/uptodate@main
+      id: dockerbuild
+      with: 
+
+        # Where your Dockerfile files
+        root: ./cmake
+
+        # Build all matrix builds, and not looking for only changes or updates
+        flags: "--all"
+        parser: dockerbuild
+
+    - name: View and Check Build Matrix Result
+      env:
+        result: ${{ steps.dockerbuild.outputs.dockerbuild_matrix }}
+      run: |
+        echo ${result}
+
+  test:
+    needs:
+      - generate
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        result: ${{ fromJson(needs.generate.outputs.dockerbuild_matrix) }}
+    if: ${{ needs.generate.outputs.empty_matrix == 'false' }}
+
+    name: "Build ${{ matrix.result.description }}"
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: "Build ${{ matrix.result.description }}"
+      id: builder
+      env:
+        container: ${{ matrix.result.container_name }}
+        prefix: ${{ matrix.result.command_prefix }}
+        filename: ${{ matrix.result.filename }}
+      run: |
+        basedir=$(dirname $filename)
+        printf "Base directory is ${basedir}\n"
+        # Get relative path to PWD and generate dashed name from it
+        cd $basedir
+        echo "${prefix} -t ${container} ."
+        ${prefix} -t ${container} .
+```
+
+For either approach above, you can add this file (name it something appropriate like `container-test.yaml`) to .github/workflows in your repository, and it will trigger and run the tests in parallel. It's that easy!
+
+## 5. Optimizations
+
+If it's the case that your build runs out of room, you can add this step directly before building
+to (usually) make enough additional room:
+
+```yaml
+    - name: Make Space For Build
+      run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+```

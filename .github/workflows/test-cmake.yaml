@@ -39,7 +39,7 @@ jobs:
         result: ${{ fromJson(needs.generate.outputs.dockerbuild_matrix) }}
     if: ${{ needs.generate.outputs.empty_matrix == 'false' }}
 
-    name: "Build ${{ matrix.result.container_name }} ${{ matrix.result.flags }}"
+    name: "Build ${{ matrix.result.description }}"
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
