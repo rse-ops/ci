@@ -122,7 +122,93 @@ will build:
 A1 B2 C3
 ```
 
-This GitHub actions workflow is slightly longer because we need a first job to generate the matrix for us, and to check if it's empty, etc.
+#### uptodate.yaml
+
+This GitHub actions workflow is slightly longer because we will first need to generate an uptodate.yaml file that defines one or more build args to be used as a matrix as shown above. For example this uptodate.yaml:
+
+```yaml
+dockerbuild:
+  matrix:
+    containerbase:
+       - ghcr.io/rse-radiuss/gcc-ubuntu-20.04
+       - ghcr.io/rse-radiuss/clang-ubuntu-20.04
+       - ghcr.io/rse-radiuss/cuda-ubuntu-20.04
+    containertag:
+       - gcc-8.1.0
+       - llvm-10.0.0
+       - cuda-10.1.243
+    cxx_compiler:
+       - g++
+       - clang++
+       - g++
+    enable_openmp:
+       - "On"
+       - "On"
+       - "Off"
+    enable_cuda:
+       - "Off"
+       - "Off"
+       - "On"
+    enable_tests:
+       - "On"
+       - "On"
+       - "Off"
+```
+
+matched to this Dockerfile:
+
+```dockerfile
+ARG containerbase
+ARG containertag
+FROM ${containerbase}:${containertag} as base
+
+ARG cxx_compiler="g++"
+ARG enable_openmp="On"
+ARG enable_cuda="Off"
+ARG enable_tests="On"
+ARG version
+
+ENV cxx_compiler=${cxx_compiler}
+ENV enable_openmp=${enable_openmp}
+ENV enable_cuda=${enable_cuda}
+ENV enable_tests=${enable_tests}
+
+ENV GTEST_COLOR=1
+RUN git clone https://github.com/LLNL/Umpire /code
+
+WORKDIR /code
+RUN git submodule init && git submodule update
+RUN cmake -B build -S . -DUMPIRE_ENABLE_C=On -DENABLE_COVERAGE=On -DCMAKE_BUILD_TYPE=Debug -DUMPIRE_ENABLE_DEVELOPER_DEFAULTS=On -DCMAKE_CXX_COMPILER=${cxx_compiler} -DENABLE_OPENMP=${enable_openmp} -DENABLE_TESTS=${enable_tests}
+RUN cmake --build build
+RUN cd build && ctest -T test --output-on-failure
+```
+
+Will generate the following three docker builds:
+
+```bash
+docker build -f Dockerfile --build-arg containertag=gcc-8.1.0 --build-arg cxx_compiler=g++ --build-arg enable_openmp=On --build-arg enable_cuda=Off --build-arg enable_tests=On --build-arg containerbase=ghcr.io/rse-radiuss/gcc-ubuntu-20.04 cmake
+docker build -f Dockerfile --build-arg containerbase=ghcr.io/rse-radiuss/cuda-ubuntu-20.04 --build-arg containertag=cuda-10.1.243 --build-arg cxx_compiler=g++ --build-arg enable_openmp=Off --build-arg enable_cuda=On --build-arg enable_tests=Off cmake
+```
+
+You can be creative about how you break apart your build args and map them to the Dockerfile - the example above might be a bit excessive for your use case. Logical steps to generating this are:
+
+1. Start with a Dockerfile that builds and tests your software
+2. Figure out where you can use variables (typically base images, versions, or flags)
+3. Write out those variables as build args. To get into your Dockerfile, the `ARG` needs to be mapped to an `ENV` (environment) variable before it can be referenced as such
+4. Write down those exact pairings and names of build args in your uptodate.yaml matrix, as shown in the example. A variable named `var` will map to `ARG var`. If necessary you can set a default with `ARG var=<default>`
+
+If you wanted to test this locally, you can build [uptodate](https://vsoch.github.io/uptodate/docs/#/user-guide/user-guide?id=install) and run:
+
+```bash
+$ uptodate dockerbuild --all ./folder
+```
+
+Where `folder` corresponds to the directory with your Dockerfile and uptodate.yaml.
+
+#### uptodate GitHub Action
+
+Uptodate comes with its own GitHub action to run the command above, and map it into a GitHub matrix that will
+then be pushed out to multiple parallel jobs.
 
 ```yaml
 on: [pull_request]
@@ -205,5 +291,5 @@ to (usually) make enough additional room:
 
 ## 6. Example
 
-For an example, see the [uptodate.yaml](uptodate.yaml) and matching [Dockerfile](Dockerfile)
-in this directory, and the matching [test-cmake.yaml](../.github/workflows/test-cmake.yaml)
+For an example, see the [uptodate.yaml](uptodate.yaml) and matching [Dockerfile](https://github.com/rse-radiuss/ci/blob/main/cmake/Dockerfile)
+in this directory, and the matching [test-cmake.yaml](https://github.com/rse-radiuss/ci/blob/main/.github/workflows/test-cmake.yaml).
