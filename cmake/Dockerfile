@@ -1,4 +1,4 @@
-ARG containerbase=ghcr.io/rse-radiuss/gcc-ubuntu-20.04
+ARG containerbase
 FROM ${containerbase}
 
 ARG cxx_compiler="g++"
