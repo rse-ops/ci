@@ -1,6 +1,20 @@
-# Cmake CI
+---
+title: CMake
+layout: page-two-col
+parent: Continuous Integration
+active: Continuous Integration
+permalink: /cmake/
+---
 
-This is an example for how to set up a GitHub Action to test your Cmake project.
+# CMake CI
+
+{:.no_toc}
+
+This is an example for how to set up a GitHub Action to test your CMake project.
+
+* TOC
+{:toc}
+
 
 ## 1. Overview of Steps
 
@@ -90,7 +104,7 @@ jobs:
         flags: ["-DENABLE_OPENMP=On", "-DENABLE_OPENMP=On", "-DENABLE_CUDA=On"]
 
     # This is how to reference a variable in the matrix
-    name: "${{ matrix.containerbase }} ${{ matrix.flags }}"
+    name: "{% raw %}${{ matrix.containerbase }} ${{ matrix.flags }}{% endraw %}"
     steps:
     - uses: actions/checkout@v2
     - name: Build and run testing container
@@ -100,7 +114,7 @@ jobs:
          cd cmake/
 
          # It's useful to print the command first
-         command="docker build --build-arg containerbase=ghcr.io/rse-radiuss/${{ matrix.containerbase }} --build-arg flags=${{ matrix.flags }} -t cmake-testing-container ."
+         command="docker build --build-arg containerbase=ghcr.io/rse-radiuss/{% raw %}${{ matrix.containerbase }}{% endraw %} --build-arg flags={% raw %}${{ matrix.flags }}{% endraw %} -t cmake-testing-container ."
          printf "${command}\n"
          ${command}
 ```
@@ -218,8 +232,8 @@ jobs:
     name: Generate Build Matrix
     runs-on: ubuntu-latest
     outputs:
-      dockerbuild_matrix: ${{ steps.dockerbuild.outputs.dockerbuild_matrix }}
-      empty_matrix: ${{ steps.dockerbuild.outputs.dockerbuild_matrix_empty }}
+      dockerbuild_matrix: {% raw %}${{ steps.dockerbuild.outputs.dockerbuild_matrix }}{% endraw %}
+      empty_matrix: {% raw %}${{ steps.dockerbuild.outputs.dockerbuild_matrix_empty }}{% endraw %}
 
     steps:
     - uses: actions/checkout@v2
@@ -237,7 +251,7 @@ jobs:
 
     - name: View and Check Build Matrix Result
       env:
-        result: ${{ steps.dockerbuild.outputs.dockerbuild_matrix }}
+        result: {% raw %}${{ steps.dockerbuild.outputs.dockerbuild_matrix }}{% endraw %}
       run: |
         echo ${result}
 
@@ -248,10 +262,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        result: ${{ fromJson(needs.generate.outputs.dockerbuild_matrix) }}
-    if: ${{ needs.generate.outputs.empty_matrix == 'false' }}
+        result: {% raw %}${{ fromJson(needs.generate.outputs.dockerbuild_matrix) }}{% endraw %}
+    if: {% raw %}${{ needs.generate.outputs.empty_matrix == 'false' }}{% endraw %}
 
-    name: "Build ${{ matrix.result.description }}"
+    name: "{% raw %}${{ matrix.result.description }}{% endraw %}"
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
@@ -259,12 +273,12 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
-    - name: "Build ${{ matrix.result.description }}"
+    - name: "{% raw %}${{ matrix.result.description }}{% endraw %}"
       id: builder
       env:
-        container: ${{ matrix.result.container_name }}
-        prefix: ${{ matrix.result.command_prefix }}
-        filename: ${{ matrix.result.filename }}
+        container: {% raw %}${{ matrix.result.container_name }}{% endraw %}
+        prefix: {% raw %}${{ matrix.result.command_prefix }}{% endraw %}
+        filename: {% raw %}${{ matrix.result.filename }}{% endraw %}
       run: |
         basedir=$(dirname $filename)
         printf "Base directory is ${basedir}\n"
