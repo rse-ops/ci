@@ -10,14 +10,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-      with:
-         fetch-depth: 0
-
     - name: Generate Build Matrix
       uses: vsoch/uptodate@main
       id: dockerbuild
       with: 
-        root: cmake
+        root: .
         flags: "--all"
         parser: dockerbuild
 
