@@ -52,7 +52,7 @@ jobs:
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
 
-    - name: "Build ${{ matrix.result.container_name }} ${{ matrix.result.flags }}"
+    - name: "Build ${{ matrix.result.description }}"
       id: builder
       env:
         container: ${{ matrix.result.container_name }}
