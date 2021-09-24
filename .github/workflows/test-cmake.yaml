@@ -56,16 +56,14 @@ jobs:
       id: builder
       env:
         container: ${{ matrix.result.container_name }}
-        containerbase: ${{ matrix.result.buildargs.containerbase }}
-        flags: ${{ matrix.result.buildargs.flags }}
+        prefix: ${{ matrix.result.buildargs.command_prefix }}
         filename: ${{ matrix.result.filename }}
       run: |
         basedir=$(dirname $filename)
-        dockerfile=$(basename $filename)
         printf "Base directory is ${basedir}\n"
         # Get relative path to PWD and generate dashed name from it
         cd $basedir
         echo "${prefix} -t ${container} ."
-        docker build -f ${dockerfile} --build-arg containerbase=${containerbase} --build-arg flags='${flags}' -t ${container} .
+        ${prefix} -t ${container} .
         echo ::set-output name=uri::${container}
         echo ::set-output name=dockerfile_dir::${basedir}
