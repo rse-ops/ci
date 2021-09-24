@@ -56,7 +56,7 @@ jobs:
       id: builder
       env:
         container: ${{ matrix.result.container_name }}
-        prefix: ${{ matrix.result.buildargs.command_prefix }}
+        prefix: ${{ matrix.result.command_prefix }}
         filename: ${{ matrix.result.filename }}
       run: |
         basedir=$(dirname $filename)
