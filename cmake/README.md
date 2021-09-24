@@ -201,3 +201,9 @@ to (usually) make enough additional room:
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
 ```
+
+
+## 6. Example
+
+For an example, see the [uptodate.yaml](uptodate.yaml) and matching [Dockerfile](Dockerfile)
+in this directory, and the matching [test-cmake.yaml](../.github/workflows/test-cmake.yaml)
