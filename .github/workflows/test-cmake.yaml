@@ -66,6 +66,6 @@ jobs:
         # Get relative path to PWD and generate dashed name from it
         cd $basedir
         echo "${prefix} -t ${container} ."
-        docker build -f ${dockerfile} --build-arg containerbase=${containerbase} --build-args flags=${flags} -t ${container} .
+        docker build -f ${dockerfile} --build-arg containerbase=${containerbase} --build-arg flags=${flags} -t ${container} .
         echo ::set-output name=uri::${container}
         echo ::set-output name=dockerfile_dir::${basedir}
