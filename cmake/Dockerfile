@@ -1,10 +1,12 @@
 ARG containerbase
-FROM ${containerbase}
+ARG containertag
+FROM ${containerbase}:${containertag} as base
 
 ARG cxx_compiler="g++"
 ARG enable_openmp="On"
 ARG enable_cuda="Off"
 ARG enable_tests="On"
+ARG version
 
 ENV cxx_compiler=${cxx_compiler}
 ENV enable_openmp=${enable_openmp}

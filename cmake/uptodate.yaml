@@ -1,9 +1,13 @@
 dockerbuild:
   matrix:
     containerbase:
-       - ghcr.io/rse-radiuss/gcc-ubuntu-20.04:gcc-8.1.0
-       - ghrc.io/rse-radiuss/clang-ubuntu-20.04:llvm-10.0.0
-       - ghcr.io/rse-radiuss/cuda-ubuntu-20.04:cuda-10.1.243
+       - ghcr.io/rse-radiuss/gcc-ubuntu-20.04
+       - ghrc.io/rse-radiuss/clang-ubuntu-20.04
+       - ghcr.io/rse-radiuss/cuda-ubuntu-20.04
+    containertag:
+       - gcc-8.1.0
+       - llvm-10.0.0
+       - cuda-10.1.243
     cxx_compiler:
        - g++
        - clang++
