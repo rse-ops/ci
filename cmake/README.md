@@ -18,13 +18,16 @@ This is an example for how to set up a GitHub Action to test your CMake project.
 
 ## 1. Overview of Steps
 
-For this short tutorial, we will be doing the following steps to create a Dockerfile
-and associated GitHub action:
+For this short tutorial, we will be creating a GitHub action that builds and tests
+a CMake project.  These steps generally include:
 
  - getting the source into the Docker image
  - run cmake with our options from the dictionary
  - run make (or cmake --build .)
  - run ctest
+
+However the way that you create your build matrix will vary depending on your needs!
+Keep reading for a short tutorial.
 
 ## 2. Create a Dockerfile
 
@@ -53,22 +56,22 @@ RUN cd build && make -j 16
 RUN cd build && ctest -T test --output-on-failure
 ```
 
-The first argument, `containerbase` is an example of choosing a base image. Since it's an argument,
+For the above, we have represented versions and anything we might want to treat as a variable as build arguments.
+As an example, the first build argument, `containerbase` is how we will choose a base image. Since it's an argument,
 we will be able to populate it using different base images. For the default value (`ghcr.io/rse-radiuss/gcc-ubuntu-20.04:gcc-11.2.0`) you should choose the one that you want the Dockerfile to build if no build argument
 is provided. This is true for any build argument (e.g., also flags).
 
-## 3. Choose Base Images
+### Choose Base Images
 
-You can choose one or more base images from the [rse-radiuss](https://rse-radiuss.github.io/docker-images/)
-library. Each comes with spack pre-installed, along with a compiler/version of your choice.
+Speaking of base images, you can choose one or more base images from the [rse-radiuss](https://rse-radiuss.github.io/docker-images/) library. 
+Each comes with spack pre-installed, along with a compiler/version of your choice.
 
-## 4. Create GitHub Action
+## 3. Create GitHub Action
 
 There are two possible ways to create the GitHub action, and it depends on if you
-want to create all permutations of a matrix (you can use native GitHub actions) or you
-want a 1:1 mapping of a matrix (e.g., in the matrix everything at index 1 builds with the
-other arguments at index 1, and all build args must be the same lenth. We will discuss and show both
-options here.
+want to create all permutations of a matrix (you can use a native GitHub actions matrix) or you
+want a 1:1 mapping of a matrix (a column-wise matrix where everything at index 1 builds with the
+other arguments at index 1, and all build args must be the same length)). We will discuss and show both options here.
 
 ### GitHub Action Matrix
 
@@ -121,6 +124,7 @@ jobs:
 
 To reiterate what was said above, for the matrix shown above, we will generate a build for every permutation, meaning 3 container bases (`containerbase`) by 3 flags for a total of 3x3=9 builds. This only works if you can use every combination. If not, you likely want an [uptodate](https://github.com/vsoch/uptodate) matrix, shown next.
 
+
 ### Column-wise Matrix
 
 Let's say that you have build args (like a container base and then compile flags) and you cannot build all combinations together. To adjust our previous example, with this matrix strategy
@@ -146,27 +150,15 @@ dockerbuild:
     containerbase:
        - ghcr.io/rse-radiuss/gcc-ubuntu-20.04
        - ghcr.io/rse-radiuss/clang-ubuntu-20.04
-       - ghcr.io/rse-radiuss/cuda-ubuntu-20.04
     containertag:
        - gcc-8.1.0
        - llvm-10.0.0
-       - cuda-10.1.243
     cxx_compiler:
        - g++
        - clang++
-       - g++
-    enable_openmp:
-       - "On"
-       - "On"
-       - "Off"
-    enable_cuda:
-       - "Off"
-       - "Off"
-       - "On"
     enable_tests:
        - "On"
        - "On"
-       - "Off"
 ```
 
 matched to this Dockerfile:
@@ -177,31 +169,26 @@ ARG containertag
 FROM ${containerbase}:${containertag} as base
 
 ARG cxx_compiler="g++"
-ARG enable_openmp="On"
-ARG enable_cuda="Off"
 ARG enable_tests="On"
 ARG version
 
 ENV cxx_compiler=${cxx_compiler}
-ENV enable_openmp=${enable_openmp}
-ENV enable_cuda=${enable_cuda}
 ENV enable_tests=${enable_tests}
 
 ENV GTEST_COLOR=1
-RUN git clone https://github.com/LLNL/Umpire /code
 
+COPY . /code
 WORKDIR /code
-RUN git submodule init && git submodule update
-RUN cmake -B build -S . -DUMPIRE_ENABLE_C=On -DENABLE_COVERAGE=On -DCMAKE_BUILD_TYPE=Debug -DUMPIRE_ENABLE_DEVELOPER_DEFAULTS=On -DCMAKE_CXX_COMPILER=${cxx_compiler} -DENABLE_OPENMP=${enable_openmp} -DENABLE_TESTS=${enable_tests}
+RUN cmake -B build -S . -DCMAKE_CXX_COMPILER=${cxx_compiler} -DENABLE_TESTS=${enable_tests}
 RUN cmake --build build
 RUN cd build && ctest -T test --output-on-failure
 ```
 
-Will generate the following three docker builds:
+Will generate the following two docker builds:
 
 ```bash
-docker build -f Dockerfile --build-arg containertag=gcc-8.1.0 --build-arg cxx_compiler=g++ --build-arg enable_openmp=On --build-arg enable_cuda=Off --build-arg enable_tests=On --build-arg containerbase=ghcr.io/rse-radiuss/gcc-ubuntu-20.04 cmake
-docker build -f Dockerfile --build-arg containerbase=ghcr.io/rse-radiuss/cuda-ubuntu-20.04 --build-arg containertag=cuda-10.1.243 --build-arg cxx_compiler=g++ --build-arg enable_openmp=Off --build-arg enable_cuda=On --build-arg enable_tests=Off cmake
+docker build -f Dockerfile --build-arg cxx_compiler=g++ --build-arg enable_tests=On --build-arg containerbase=ghcr.io/rse-radiuss/gcc-ubuntu-20.04 --build-arg containertag=gcc-8.1.0 cmake
+docker build -f Dockerfile --build-arg cxx_compiler=clang++ --build-arg enable_tests=On --build-arg containerbase=ghcr.io/rse-radiuss/clang-ubuntu-20.04 --build-arg containertag=llvm-10.0.0 cmake
 ```
 
 You can be creative about how you break apart your build args and map them to the Dockerfile - the example above might be a bit excessive for your use case. Logical steps to generating this are:
@@ -288,7 +275,7 @@ jobs:
         ${prefix} -t ${container} .
 ```
 
-For either approach above, you can add this file (name it something appropriate like `container-test.yaml`) to .github/workflows in your repository, and it will trigger and run the tests in parallel. It's that easy!
+For either approach above, you can add this file (name it something appropriate like `container-test.yaml`) to .github/workflows in your repository, and it will trigger and run the tests in parallel. We are also working on templates to make this easier for you to do, and will update the documentation here when that is done.
 
 ## 5. Optimizations
 
@@ -305,5 +292,5 @@ to (usually) make enough additional room:
 
 ## 6. Example
 
-For an example, see the [uptodate.yaml](uptodate.yaml) and matching [Dockerfile](https://github.com/rse-radiuss/ci/blob/main/cmake/Dockerfile)
+For an example, see the [uptodate.yaml](https://github.com/rse-radiuss/ci/blob/main/cmake/uptodate.yaml) and matching [Dockerfile](https://github.com/rse-radiuss/ci/blob/main/cmake/Dockerfile)
 in this directory, and the matching [test-cmake.yaml](https://github.com/rse-radiuss/ci/blob/main/.github/workflows/test-cmake.yaml).
