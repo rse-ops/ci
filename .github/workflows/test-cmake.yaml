@@ -41,29 +41,5 @@ jobs:
 
     name: "Build ${{ matrix.result.description }}"
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
-
-    - name: Make Space For Build
-      run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-
-    - name: "Build ${{ matrix.result.description }}"
-      id: builder
-      env:
-        container: ${{ matrix.result.container_name }}
-        prefix: ${{ matrix.result.command_prefix }}
-        filename: ${{ matrix.result.filename }}
-      run: |
-        basedir=$(dirname $filename)
-        printf "Base directory is ${basedir}\n"
-        # Get relative path to PWD and generate dashed name from it
-        cd $basedir
-        echo "${prefix} -t ${container} ."
-        ${prefix} -t ${container} .
-        echo ::set-output name=uri::${container}
-        echo ::set-output name=dockerfile_dir::${basedir}
+    - name: Build and Test
+      uses: ./cmake
