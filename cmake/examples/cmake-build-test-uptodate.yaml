@@ -1,0 +1,41 @@
+on: [pull_request]
+
+jobs:
+  generate:
+    name: Generate Build Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      dockerbuild_matrix: ${{ steps.dockerbuild.outputs.dockerbuild_matrix }}
+      empty_matrix: ${{ steps.dockerbuild.outputs.dockerbuild_matrix_empty }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Generate Build Matrix
+      uses: vsoch/uptodate@main
+      id: dockerbuild
+      with: 
+        root: ./cmake    # Where your Dockerfile and uptodate.yaml live        
+        flags: "--all"   # Build all matrix builds, and not looking for only changes or updates
+        parser: dockerbuild
+
+    - name: View and Check Build Matrix Result
+      env:
+        result: ${{ steps.dockerbuild.outputs.dockerbuild_matrix }}
+      run: |
+        echo ${result}
+
+  test:
+    needs:
+      - generate
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        result: ${{ fromJson(needs.generate.outputs.dockerbuild_matrix) }}
+    if: ${{ needs.generate.outputs.empty_matrix == 'false' }}
+
+    name: "${{ matrix.result.description }}"
+    steps:
+    - name: Build and Test
+      uses: rse-radiuss/ci/cmake@main
+
