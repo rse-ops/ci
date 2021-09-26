@@ -17,13 +17,13 @@ outputs:
     
 runs:
   using: "composite"
-  runs-on: ubuntu-latest
   steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
     - name: Make Space For Build
+      shell: bash
       run: |
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
