@@ -254,6 +254,62 @@ jobs:
 
     name: "{% raw %}${{ matrix.result.description }}{% endraw %}"
     steps:
+
+    - name: Build and Test
+      uses: rse-radiuss/ci/cmake@main
+```
+
+If you need to customize the specific build, you can expand the action to not use the `rse-radiuss/cmake` build steps, and
+instead write your own!
+
+
+<details>
+
+<summary>A Full GitHub Workflow Example</summary>
+
+```yaml
+on: [pull_request]
+
+jobs:
+  generate:
+    name: Generate Build Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      dockerbuild_matrix: {% raw %}${{ steps.dockerbuild.outputs.dockerbuild_matrix }}{% endraw %}
+      empty_matrix: {% raw %}${{ steps.dockerbuild.outputs.dockerbuild_matrix_empty }}{% endraw %}
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Generate Build Matrix
+      uses: vsoch/uptodate@main
+      id: dockerbuild
+      with: 
+
+        # Where your Dockerfile files
+        root: ./cmake
+
+        # Build all matrix builds, and not looking for only changes or updates
+        flags: "--all"
+        parser: dockerbuild
+
+    - name: View and Check Build Matrix Result
+      env:
+        result: {% raw %}${{ steps.dockerbuild.outputs.dockerbuild_matrix }}{% endraw %}
+      run: |
+        echo ${result}
+
+  test:
+    needs:
+      - generate
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        result: {% raw %}${{ fromJson(needs.generate.outputs.dockerbuild_matrix) }}{% endraw %}
+    if: {% raw %}${{ needs.generate.outputs.empty_matrix == 'false' }}{% endraw %}
+
+    name: "{% raw %}${{ matrix.result.description }}{% endraw %}"
+    steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
@@ -274,6 +330,8 @@ jobs:
         echo "${prefix} -t ${container} ."
         ${prefix} -t ${container} .
 ```
+
+</details>
 
 For either approach above, you can add this file (name it something appropriate like `container-test.yaml`) to .github/workflows in your repository, and it will trigger and run the tests in parallel. We are also working on templates to make this easier for you to do, and will update the documentation here when that is done.
 
