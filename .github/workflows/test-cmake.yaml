@@ -39,7 +39,7 @@ jobs:
         result: ${{ fromJson(needs.generate.outputs.dockerbuild_matrix) }}
     if: ${{ needs.generate.outputs.empty_matrix == 'false' }}
 
-    name: "Build ${{ matrix.result.description }}"
+    name: "${{ matrix.result.description }}"
     steps:
     - name: Build and Test
       uses: rse-radiuss/ci/cmake@test/cmake-action
