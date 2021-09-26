@@ -42,4 +42,4 @@ jobs:
     name: "Build ${{ matrix.result.description }}"
     steps:
     - name: Build and Test
-      uses: cmake
+      uses: rse-radiuss/ci/cmake@test/cmake-action
