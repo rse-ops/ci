@@ -1,20 +1,13 @@
 ---
 title: CMake
-layout: page-two-col
-parent: Continuous Integration
-active: Continuous Integration
+layout: docs
+sidebar: ci
 permalink: /cmake/
 ---
 
 # CMake CI
 
-{:.no_toc}
-
 This is an example for how to set up a GitHub Action to test your CMake project.
-
-* TOC
-{:toc}
-
 
 ## 1. Overview of Steps
 
