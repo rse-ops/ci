@@ -1,8 +1,8 @@
 ---
 title: Continuous Integration
-layout: page-two-col
+layout: docs
 permalink: /
-parent: Continuous Integration
+sidebar: ci
 ---
 
 # Continuous Integration

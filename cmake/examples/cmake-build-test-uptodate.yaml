@@ -14,8 +14,8 @@ jobs:
       uses: vsoch/uptodate@main
       id: dockerbuild
       with: 
-        root: ./cmake
-        flags: "--all"
+        root: ./cmake    # Where your Dockerfile and uptodate.yaml live        
+        flags: "--all"   # Build all matrix builds, and not looking for only changes or updates
         parser: dockerbuild
 
     - name: View and Check Build Matrix Result
@@ -23,11 +23,6 @@ jobs:
         result: ${{ steps.dockerbuild.outputs.dockerbuild_matrix }}
       run: |
         echo ${result}
-        if [[ "${result}" == "[]" ]]; then
-          printf "The matrix is empty, will not trigger next workflow.\n"
-        else
-          printf "The matrix is not empty, and we should continue on to the next workflow.\n"
-        fi
 
   test:
     needs:
@@ -42,4 +37,5 @@ jobs:
     name: "${{ matrix.result.description }}"
     steps:
     - name: Build and Test
-      uses: rse-radiuss/ci/cmake@test/cmake-action
+      uses: rse-radiuss/ci/cmake@main
+

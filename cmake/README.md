@@ -1,20 +1,13 @@
 ---
 title: CMake
-layout: page-two-col
-parent: Continuous Integration
-active: Continuous Integration
+layout: docs
+sidebar: ci
 permalink: /cmake/
 ---
 
 # CMake CI
 
-{:.no_toc}
-
 This is an example for how to set up a GitHub Action to test your CMake project.
-
-* TOC
-{:toc}
-
 
 ## 1. Overview of Steps
 
@@ -27,7 +20,13 @@ a CMake project.  These steps generally include:
  - run ctest
 
 However the way that you create your build matrix will vary depending on your needs!
-Keep reading for a short tutorial.
+Keep reading for a detailed tutorial, or jump into the code examples provided:
+
+ - [GitHub Actions Basic (without helper actions)](https://github.com/rse-radiuss/ci/blob/main/cmake/examples/cmake-build-test-basic.yaml)
+ - [Automated Matrix Generation and Test/Build](https://github.com/rse-radiuss/ci/blob/main/cmake/examples/cmake-build-test-uptodate-full.yaml) using and [uptodate.yaml](https://github.com/rse-radiuss/ci/blob/main/cmake/uptodate.yaml) and matching [Dockerfile](https://github.com/rse-radiuss/ci/blob/main/cmake/Dockerfile)
+ - [Automated Matrix Generation and Manual Test/Build](https://github.com/rse-radiuss/ci/blob/main/cmake/examples/cmake-build-test-uptodate.yaml) with same [uptodate.yaml](https://github.com/rse-radiuss/ci/blob/main/cmake/uptodate.yaml) and [Dockerfile](https://github.com/rse-radiuss/ci/blob/main/cmake/Dockerfile)
+
+We are hoping to have a tool to make these yaml recipes easier to generate, stay tuned!
 
 ## 2. Create a Dockerfile
 
@@ -209,7 +208,7 @@ Where `folder` corresponds to the directory with your Dockerfile and uptodate.ya
 #### uptodate GitHub Action
 
 Uptodate comes with its own GitHub action to run the command above, and map it into a GitHub matrix that will
-then be pushed out to multiple parallel jobs.
+then be pushed out to multiple parallel jobs. You can see this example [here]()
 
 ```yaml
 on: [pull_request]
@@ -228,12 +227,60 @@ jobs:
       uses: vsoch/uptodate@main
       id: dockerbuild
       with: 
+        root: ./cmake    # Where your Dockerfile and uptodate.yaml live        
+        flags: "--all"   # Build all matrix builds, and not looking for only changes or updates
+        parser: dockerbuild
 
-        # Where your Dockerfile files
-        root: ./cmake
+    - name: View and Check Build Matrix Result
+      env:
+        result: {% raw %}${{ steps.dockerbuild.outputs.dockerbuild_matrix }}{% endraw %}
+      run: |
+        echo ${result}
 
-        # Build all matrix builds, and not looking for only changes or updates
-        flags: "--all"
+  test:
+    needs:
+      - generate
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        result: {% raw %}${{ fromJson(needs.generate.outputs.dockerbuild_matrix) }}{% endraw %}
+    if: {% raw %}${{ needs.generate.outputs.empty_matrix == 'false' }}{% endraw %}
+
+    name: "{% raw %}${{ matrix.result.description }}{% endraw %}"
+    steps:
+
+    - name: Build and Test
+      uses: rse-radiuss/ci/cmake@main
+```
+
+If you need to customize the specific build, you can expand the action to not use the `rse-radiuss/cmake` build steps, and
+instead write your own!
+
+
+<details>
+
+<summary>A Full GitHub Workflow Example</summary>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+on: [pull_request]
+
+jobs:
+  generate:
+    name: Generate Build Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      dockerbuild_matrix: {% raw %}${{ steps.dockerbuild.outputs.dockerbuild_matrix }}{% endraw %}
+      empty_matrix: {% raw %}${{ steps.dockerbuild.outputs.dockerbuild_matrix_empty }}{% endraw %}
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Generate Build Matrix
+      uses: vsoch/uptodate@main
+      id: dockerbuild
+      with: 
+        root: ./cmake    # Where your Dockerfile and uptodate.yaml live        
+        flags: "--all"   # Build all matrix builds, and not looking for only changes or updates
         parser: dockerbuild
 
     - name: View and Check Build Matrix Result
@@ -273,7 +320,11 @@ jobs:
         cd $basedir
         echo "${prefix} -t ${container} ."
         ${prefix} -t ${container} .
-```
+</code></pre></div></div>
+
+</details>
+
+<br>
 
 For either approach above, you can add this file (name it something appropriate like `container-test.yaml`) to .github/workflows in your repository, and it will trigger and run the tests in parallel. We are also working on templates to make this easier for you to do, and will update the documentation here when that is done.
 

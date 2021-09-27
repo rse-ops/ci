@@ -1,0 +1,48 @@
+name: 'RADIUSS CI for CMake'
+description: "Steps for a CMake build, post uptodate matrix generation"
+inputs:
+  matrix:
+    description: Output matrix from uptodate
+    required: true
+
+outputs:
+  return_code:
+    description: "Return code of the test"
+  container:
+    description: "The container URI that was built"
+  dockerfile:
+    description: "The Dockerfile path"
+  dockerfile_dir:
+    description: "The directory containing the Dockerfile"
+    
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+    - name: Make Space For Build
+      shell: bash
+      run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+    - name: "Build ${{ matrix.result.description }}"
+      id: builder
+      shell: bash
+      env:
+        container: ${{ matrix.result.container_name }}
+        prefix: ${{ matrix.result.command_prefix }}
+        filename: ${{ matrix.result.filename }}
+      run: |
+        basedir=$(dirname $filename)
+        printf "Base directory is ${basedir}\n"
+        # Get relative path to PWD and generate dashed name from it
+        cd $basedir
+        echo "${prefix} -t ${container} ."
+        ${prefix} -t ${container} .
+        return_code=$?
+        echo ::set-output name=return_code::${return_code}
+        echo ::set-output name=container::${container}
+        echo ::set-output name=dockerfile::${filename}
+        echo ::set-output name=dockerfile_dir::${basedir}
