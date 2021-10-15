@@ -37,5 +37,5 @@ jobs:
     name: "${{ matrix.result.description }}"
     steps:
     - name: Build and Test
-      uses: rse-radiuss/ci/cmake@main
+      uses: rse-ops/ci/cmake@main
 

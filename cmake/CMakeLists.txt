@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(rse-radiuss-cmake-ci)
+project(rse-ops-cmake-ci)
 
 option(ENABLE_TESTS "Enable tests" Off)
 

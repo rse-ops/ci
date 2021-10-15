@@ -22,9 +22,9 @@ a CMake project.  These steps generally include:
 However the way that you create your build matrix will vary depending on your needs!
 Keep reading for a detailed tutorial, or jump into the code examples provided:
 
- - [GitHub Actions Basic (without helper actions)](https://github.com/rse-radiuss/ci/blob/main/cmake/examples/cmake-build-test-basic.yaml)
- - [Automated Matrix Generation and Test/Build](https://github.com/rse-radiuss/ci/blob/main/cmake/examples/cmake-build-test-uptodate-full.yaml) using and [uptodate.yaml](https://github.com/rse-radiuss/ci/blob/main/cmake/uptodate.yaml) and matching [Dockerfile](https://github.com/rse-radiuss/ci/blob/main/cmake/Dockerfile)
- - [Automated Matrix Generation and Manual Test/Build](https://github.com/rse-radiuss/ci/blob/main/cmake/examples/cmake-build-test-uptodate.yaml) with same [uptodate.yaml](https://github.com/rse-radiuss/ci/blob/main/cmake/uptodate.yaml) and [Dockerfile](https://github.com/rse-radiuss/ci/blob/main/cmake/Dockerfile)
+ - [GitHub Actions Basic (without helper actions)](https://github.com/rse-ops/ci/blob/main/cmake/examples/cmake-build-test-basic.yaml)
+ - [Automated Matrix Generation and Test/Build](https://github.com/rse-ops/ci/blob/main/cmake/examples/cmake-build-test-uptodate-full.yaml) using and [uptodate.yaml](https://github.com/rse-ops/ci/blob/main/cmake/uptodate.yaml) and matching [Dockerfile](https://github.com/rse-ops/ci/blob/main/cmake/Dockerfile)
+ - [Automated Matrix Generation and Manual Test/Build](https://github.com/rse-ops/ci/blob/main/cmake/examples/cmake-build-test-uptodate.yaml) with same [uptodate.yaml](https://github.com/rse-ops/ci/blob/main/cmake/uptodate.yaml) and [Dockerfile](https://github.com/rse-ops/ci/blob/main/cmake/Dockerfile)
 
 We are hoping to have a tool to make these yaml recipes easier to generate, stay tuned!
 
@@ -33,7 +33,7 @@ We are hoping to have a tool to make these yaml recipes easier to generate, stay
 You'll first want to create a Dockerfile. Typically this means something like the following:
 
 ```
-ARG containerbase=ghcr.io/rse-radiuss/gcc-ubuntu-20.04:gcc-11.2.0
+ARG containerbase=ghcr.io/rse-ops/gcc-ubuntu-20.04:gcc-11.2.0
 FROM ${containerbase}
 
 # Any extra flags you can provide as a build argument
@@ -57,12 +57,12 @@ RUN cd build && ctest -T test --output-on-failure
 
 For the above, we have represented versions and anything we might want to treat as a variable as build arguments.
 As an example, the first build argument, `containerbase` is how we will choose a base image. Since it's an argument,
-we will be able to populate it using different base images. For the default value (`ghcr.io/rse-radiuss/gcc-ubuntu-20.04:gcc-11.2.0`) you should choose the one that you want the Dockerfile to build if no build argument
+we will be able to populate it using different base images. For the default value (`ghcr.io/rse-ops/gcc-ubuntu-20.04:gcc-11.2.0`) you should choose the one that you want the Dockerfile to build if no build argument
 is provided. This is true for any build argument (e.g., also flags).
 
 ### Choose Base Images
 
-Speaking of base images, you can choose one or more base images from the [rse-radiuss](https://rse-radiuss.github.io/docker-images/) library. 
+Speaking of base images, you can choose one or more base images from the [rse-ops](https://rse-ops.github.io/docker-images/) library. 
 Each comes with spack pre-installed, along with a compiler/version of your choice.
 
 ## 3. Create GitHub Action
@@ -116,7 +116,7 @@ jobs:
          cd cmake/
 
          # It's useful to print the command first
-         command="docker build --build-arg containerbase=ghcr.io/rse-radiuss/{% raw %}${{ matrix.containerbase }}{% endraw %} --build-arg flags={% raw %}${{ matrix.flags }}{% endraw %} -t cmake-testing-container ."
+         command="docker build --build-arg containerbase=ghcr.io/rse-ops/{% raw %}${{ matrix.containerbase }}{% endraw %} --build-arg flags={% raw %}${{ matrix.flags }}{% endraw %} -t cmake-testing-container ."
          printf "${command}\n"
          ${command}
 ```
@@ -147,8 +147,8 @@ This GitHub actions workflow is slightly longer because we will first need to ge
 dockerbuild:
   matrix:
     containerbase:
-       - ghcr.io/rse-radiuss/gcc-ubuntu-20.04
-       - ghcr.io/rse-radiuss/clang-ubuntu-20.04
+       - ghcr.io/rse-ops/gcc-ubuntu-20.04
+       - ghcr.io/rse-ops/clang-ubuntu-20.04
     containertag:
        - gcc-8.1.0
        - llvm-10.0.0
@@ -186,8 +186,8 @@ RUN cd build && ctest -T test --output-on-failure
 Will generate the following two docker builds:
 
 ```bash
-docker build -f Dockerfile --build-arg cxx_compiler=g++ --build-arg enable_tests=On --build-arg containerbase=ghcr.io/rse-radiuss/gcc-ubuntu-20.04 --build-arg containertag=gcc-8.1.0 cmake
-docker build -f Dockerfile --build-arg cxx_compiler=clang++ --build-arg enable_tests=On --build-arg containerbase=ghcr.io/rse-radiuss/clang-ubuntu-20.04 --build-arg containertag=llvm-10.0.0 cmake
+docker build -f Dockerfile --build-arg cxx_compiler=g++ --build-arg enable_tests=On --build-arg containerbase=ghcr.io/rse-ops/gcc-ubuntu-20.04 --build-arg containertag=gcc-8.1.0 cmake
+docker build -f Dockerfile --build-arg cxx_compiler=clang++ --build-arg enable_tests=On --build-arg containerbase=ghcr.io/rse-ops/clang-ubuntu-20.04 --build-arg containertag=llvm-10.0.0 cmake
 ```
 
 You can be creative about how you break apart your build args and map them to the Dockerfile - the example above might be a bit excessive for your use case. Logical steps to generating this are:
@@ -251,10 +251,10 @@ jobs:
     steps:
 
     - name: Build and Test
-      uses: rse-radiuss/ci/cmake@main
+      uses: rse-ops/ci/cmake@main
 ```
 
-If you need to customize the specific build, you can expand the action to not use the `rse-radiuss/cmake` build steps, and
+If you need to customize the specific build, you can expand the action to not use the `rse-ops/cmake` build steps, and
 instead write your own!
 
 
@@ -343,5 +343,5 @@ to (usually) make enough additional room:
 
 ## 6. Example
 
-For an example, see the [uptodate.yaml](https://github.com/rse-radiuss/ci/blob/main/cmake/uptodate.yaml) and matching [Dockerfile](https://github.com/rse-radiuss/ci/blob/main/cmake/Dockerfile)
-in this directory, and the matching [test-cmake.yaml](https://github.com/rse-radiuss/ci/blob/main/.github/workflows/test-cmake.yaml).
+For an example, see the [uptodate.yaml](https://github.com/rse-ops/ci/blob/main/cmake/uptodate.yaml) and matching [Dockerfile](https://github.com/rse-ops/ci/blob/main/cmake/Dockerfile)
+in this directory, and the matching [test-cmake.yaml](https://github.com/rse-ops/ci/blob/main/.github/workflows/test-cmake.yaml).
