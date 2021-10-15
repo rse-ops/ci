@@ -24,6 +24,6 @@ jobs:
          cd cmake/
 
          # It's useful to print the command first
-         command="docker build --build-arg containerbase=ghcr.io/rse-radiuss/{% raw %}${{ matrix.containerbase }}{% endraw %} --build-arg flags={% raw %}${{ matrix.flags }}{% endraw %} -t cmake-testing-container ."
+         command="docker build --build-arg containerbase=ghcr.io/rse-ops/{% raw %}${{ matrix.containerbase }}{% endraw %} --build-arg flags={% raw %}${{ matrix.flags }}{% endraw %} -t cmake-testing-container ."
          printf "${command}\n"
          ${command}

@@ -1,6 +1,6 @@
-# RADIUSS CI
+# RSE-ops CI
 
-![img/radiuss-ci.png](img/radiuss-ci.png)
+![img/rse-ops-ci.png](img/rse-ops-ci.png)
 
 This is a set of example GitHub Actions that will get you started to build
 testing containers for a build strategy of choice. 
@@ -9,7 +9,7 @@ are optimal for that kind of test.
 
  - [cmake](cmake): An example of a build matrix for a cmake project.
 
-It is recommended to view the documentation in the [web interface](https://rse-radiuss.github.io/ci/).
+It is recommended to view the documentation in the [web interface](https://rse-ops.github.io/ci/).
 However, if you read it here in GitHub, you can safely remove occurrences of `{% raw %}` and `{% endraw %}`
 that are only there to aid the site rendering.
 
@@ -45,7 +45,7 @@ For any GitHub variables in the format `${{ varname }}` You should surround with
 ( e.g., `{% raw %}${{ varname }}{% endraw %}` so it correctly renders with Jekyll. 
 
 To develop, meaning installing and running Jekyll locally, you can follow
-the instructions [here](https://github.com/rse-radiuss/rse-radiuss.github.io#development).
+the instructions [here](https://github.com/rse-ops/rse-ops.github.io#development).
 
 License
 -------
