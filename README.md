@@ -50,7 +50,7 @@ the instructions [here](https://github.com/rse-ops/rse-ops.github.io#development
 License
 -------
 
-Copyright (c) 2021, Lawrence Livermore National Security, LLC. 
+Copyright (c) 2021-2022, Lawrence Livermore National Security, LLC. 
 Produced at the Lawrence Livermore National Laboratory.
 
 RADIUSS is licensed under the MIT license [LICENSE](./LICENSE).
