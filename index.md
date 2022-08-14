@@ -13,3 +13,10 @@ Welcome to the RADIUSS Continuous Integration (CI) set of instructions. RADIUSS 
 Explore the different build frameworks on the left to learn how to generate your
 CI pipeline. If you have a framework that is not listed here, please <a href="https://github.com/rse-ops/ci/issues" target="_blank">let us know!</a>
 
+<br>
+
+## Supported Tooling
+
+The following external documentation sites can additionally provide support to test RADIUSS-specific projects.
+
+ - [RADIUSS Shared CI](https://radiuss-shared-ci.readthedocs.io/en/latest/) is intended to provide open source RADIUSS projects with the ability to be hosted on GitHub, but run extra CI on LC GitLab. To use this setup you will need a spack package for your software. The Cmake build system is strongly recommended but not mandatory.
