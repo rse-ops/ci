@@ -1,0 +1,43 @@
+name: "UpToDate Matrix"
+description: "Generate Matrix of Docker builds with uptodate"
+inputs:
+  root:
+    description: Root working directory, defaults to PWD if not set.
+    default: "."
+    required: true
+
+outputs:
+  matrix:
+    description: "Matrix (string with json) for builds"
+    value: ${{ steps.dockerbuild.outputs.dockerbuild_matrix }}
+  is_empty:
+    description: "Is the matrix empty?"
+    value: ${{ steps.dockerbuild.outputs.dockerbuild_matrix_empty }}
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v3
+      with:
+         fetch-depth: 0
+
+    - name: Generate Build Matrix
+      uses: vsoch/uptodate@main
+      id: dockerbuild
+      with: 
+        root: ${{ inputs.root }}
+        parser: dockerbuild
+        flags: "--all"
+
+    - name: View and Check Build Matrix Result
+      id: matrix
+      env:
+        result: ${{ steps.dockerbuild.outputs.dockerbuild_matrix }}
+      run: |
+        echo ${result}
+        if [[ "${result}" == "[]" ]]; then
+          printf "The matrix is empty, will not trigger next workflow.\n"
+        else
+          printf "The matrix is not empty, and we should continue on to the next workflow.\n"
+        fi
+      shell: bash

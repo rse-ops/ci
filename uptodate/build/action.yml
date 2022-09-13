@@ -1,0 +1,92 @@
+name: "UpToDate Build"
+description: "Build docker containers with uptodate"
+inputs:
+  repo:
+    description: Repository name in the registry
+    required: true
+  registry:
+    description: Container registry (defaults to ghcr.io)
+    required: true
+    default: ghcr.io
+  deploy:
+    description: Deploy (push) to the registry (defaults to False).
+    default: false
+    required: true
+  platform:
+    description: Platform string for buildx (defaults to linux/amd64)
+    default: linux/amd64
+    required: true
+  root:
+    description: Root working directory, defaults to PWD if not set.
+    default: "."
+    required: true
+  dockerfile:
+    description: Path of Dockerfile relative to root (from matrix action, result.filename)
+    required: true
+    default: Dockerfile
+  token:
+    description: GitHub token to authenticate build.
+    required: true
+  container_name:
+    description: Container name to build (from matrix action, result.container_name)
+    required: true
+  command_prefix:
+    description: Command prefix (from matrix action, result.command_prefix)
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+      
+    - name: GHCR Login
+      if: ${{ inputs.deploy == 'true' }}
+      uses: docker/login-action@v1 
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ inputs.token }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+    
+    - name: Pull Docker Layers
+      run: docker pull ${{ inputs.registry }}/${{ inputs.repo }}/${{ inputs.container_name }} || exit 0
+      shell: bash
+  
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v1
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Prepare ${{ inputs.container_name }}
+      id: builder
+      env:
+        container: ${{ inputs.container_name }}
+        prefix: ${{ inputs.command_prefix }}
+        filename: ${{ inputs.dockerfile }}
+      run: |
+        basedir=$(dirname $filename)
+        printf "Base directory is ${basedir}\n"
+        # Get relative path to PWD and generate dashed name from it
+        cd ${basedir}
+        echo "${prefix} -t ${container} ."
+        build_args="$(echo "${prefix#*--build-arg}")"
+        echo "dockerfile_dir=${basedir}" >> $GITHUB_ENV
+        echo "build_args=${build_args}" >> $GITHUB_ENV
+        echo "container=${container}" >> $GITHUB_ENV
+        echo "filename=${filename}" >> $GITHUB_ENV
+      shell: bash
+      
+    - name: Build ${{ inputs.dockerfile }}
+      uses: docker/build-push-action@v2
+      with:
+        context: ${{ env.dockerfile_dir }}
+        file: ${{ env.filename }}
+        platforms: ${{ inputs.platform }}
+        push: ${{ inputs.deploy == 'true' }}
+        build-args: |
+          ${{ env.build_args }}
+        tags: ${{ inputs.registry }}/${{ inputs.repo }}/${{ env.container }}

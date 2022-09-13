@@ -8,6 +8,7 @@ The subfolders here match to different testing frameworks, meaning the defaults
 are optimal for that kind of test.
 
  - [cmake](cmake): An example of a build matrix for a cmake project.
+ - [uptodate](uptodate): An action to use [uptodate](https://github.com/vsoch/uptodate) to build Dockerfile in a repository.
 
 It is recommended to view the documentation in the [web interface](https://rse-ops.github.io/ci/).
 However, if you read it here in GitHub, you can safely remove occurrences of `{% raw %}` and `{% endraw %}`
