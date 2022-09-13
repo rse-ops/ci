@@ -69,7 +69,9 @@ runs:
       
     - name: Build ${{ inputs.dockerfile }}
       run: docker build -f ${{ env.filename }} ${{ env.build_args }} -t ${{ inputs.registry }}/${{ inputs.repo }}/${{ env.container }} ${{ inputs.deploy == 'true' }}
+      shell: bash
 
     - name: Deploy
       if: ${{ inputs.deploy == 'true' }}
       run: docker push ${{ inputs.registry }}/${{ inputs.repo }}/${{ env.container }}
+      shell: bash
