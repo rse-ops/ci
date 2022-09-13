@@ -15,7 +15,7 @@ jobs:
       matrix: ${{ steps.matrix.outputs.matrix }}
       is_empty: ${{ steps.matrix.outputs.is_empty }}
     steps:
-    - uses: ./uptodate/matrix@
+    - uses: ./uptodate/matrix
       id: matrix
       with:
         root: uptodate
