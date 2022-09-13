@@ -117,7 +117,7 @@ jobs:
       with:
         repo: rse-ops
         registry: ghcr.io
-        deploy: (github.event_name != 'pull_request')
+        deploy: "${{ github.event_name != 'pull_request' }}"
         token: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
         container_name: {% raw %}${{ matrix.result.container_name }}{% endraw %}
         command_prefix: {% raw %}${{ matrix.result.command_prefix }}{% endraw %}
