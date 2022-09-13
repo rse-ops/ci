@@ -37,7 +37,7 @@ runs:
       uses: actions/checkout@v3
       
     - name: GHCR Login
-      if: ${{ inputs.deploy == 'true' }}
+      if: ${{ inputs.deploy == 'true' || inputs.deploy == true }}
       uses: docker/login-action@v1 
       with:
         registry: ghcr.io
@@ -82,6 +82,6 @@ runs:
       shell: bash
 
     - name: Deploy
-      if: ${{ inputs.deploy == 'true' }}
+      if: ${{ inputs.deploy == 'true' || inputs.deploy == true }}
       run: docker push ${{ inputs.registry }}/${{ inputs.repo }}/${{ env.container }}
       shell: bash
