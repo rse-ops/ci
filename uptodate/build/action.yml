@@ -12,6 +12,7 @@ inputs:
     description: Deploy (push) to the registry (defaults to False).
     default: false
     required: true
+    type: boolean
   root:
     description: Root working directory, defaults to PWD if not set.
     default: "."
