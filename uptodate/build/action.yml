@@ -21,7 +21,7 @@ inputs:
     default: "."
     required: true
   dockerfile:
-    description: Path of Dockerfile relative to root
+    description: Path of Dockerfile relative to root (from matrix action, result.filename)
     required: true
     default: Dockerfile
   token:
@@ -32,9 +32,6 @@ inputs:
     required: true
   command_prefix:
     description: Command prefix (from matrix action, result.command_prefix)
-    required: true
-  filename:
-    description: filename to build (from matrix action, result.filename)
     required: true
 
 runs:
@@ -69,7 +66,7 @@ runs:
       env:
         container: ${{ inputs.container_name }}
         prefix: ${{ inputs.command_prefix }}
-        filename: ${{ inputs.filename }}
+        filename: ${{ inputs.dockerfile }}
       run: |
         basedir=$(dirname $filename)
         printf "Base directory is ${basedir}\n"
