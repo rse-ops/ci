@@ -15,6 +15,7 @@ jobs:
       matrix: ${{ steps.matrix.outputs.matrix }}
       is_empty: ${{ steps.matrix.outputs.is_empty }}
     steps:
+    - uses: actions/checkout@v3
     - uses: ./uptodate/matrix
       id: matrix
       with:
@@ -32,6 +33,7 @@ jobs:
     if: ${{ needs.generate.outputs.is_empty == 'false' }}
     name: "Build ${{ matrix.result.container_name }}" 
     steps:
+    - uses: actions/checkout@v3
     - uses: ./uptodate/build
       with:
         repo: rse-ops

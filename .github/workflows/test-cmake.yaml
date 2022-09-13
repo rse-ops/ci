@@ -10,7 +10,7 @@ jobs:
       empty_matrix: ${{ steps.dockerbuild.outputs.dockerbuild_matrix_empty }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Generate Build Matrix
       uses: vsoch/uptodate@main
       id: dockerbuild
