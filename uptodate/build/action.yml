@@ -86,7 +86,7 @@ runs:
         context: ${{ env.dockerfile_dir }}
         file: ${{ env.filename }}
         platforms: ${{ inputs.platform }}
-        push: (inputs.deploy == 'true')
+        push: (github.event_name != 'pull_request`)
         build-args: |
           ${{ env.build_args }}
         tags: ${{ inputs.registry }}/${{ inputs.repo }}/${{ env.container }}
