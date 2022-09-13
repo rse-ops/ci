@@ -78,7 +78,7 @@ runs:
       shell: bash
 
     - name: Build ${{ inputs.dockerfile }}
-      run: docker build -f ${{ env.filename }} ${{ env.bargs }} -t ${{ inputs.registry }}/${{ inputs.repo }}/${{ env.container }} ${{ inputs.deploy == 'true' }}
+      run: docker build -f ${{ env.filename }} ${{ env.bargs }} -t ${{ inputs.registry }}/${{ inputs.repo }}/${{ env.container }}
       shell: bash
 
     - name: Deploy
