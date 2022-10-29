@@ -8,22 +8,26 @@ jobs:
       # Failing fast means if one job fails, we cancel the rest
       fail-fast: true
 
-      # Here is our build matrix. We will build each entry in container with each entry in flags, for a total of 3x3=9
+      # Here is our build matrix. We will build each entry in container with each entry in flags, for a total of
+        3x3=9
       matrix:
-        containerbase: ["gcc-ubuntu-20.04:gcc-11.2.0", "clang-ubuntu-20.04:llvm-12.0.0", "cuda-ubuntu-20.04:cuda-11.4.0"]
-        flags: ["-DENABLE_OPENMP=On", "-DENABLE_OPENMP=On", "-DENABLE_CUDA=On"]
+        containerbase: [gcc-ubuntu-20.04:gcc-11.2.0,
+          clang-ubuntu-20.04:llvm-12.0.0,
+          cuda-ubuntu-20.04:cuda-11.4.0]
+        flags: [-DENABLE_OPENMP=On, -DENABLE_OPENMP=On, -DENABLE_CUDA=On]
 
     # This is how to reference a variable in the matrix
-    name: "{% raw %}${{ matrix.containerbase }} ${{ matrix.flags }}{% endraw %}"
+    name: '{% raw %}${{ matrix.containerbase }} ${{ matrix.flags }}{% endraw %}'
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Build and run testing container
-      run: |
+      run: |2
 
-         # Since we want to build the Dockerfile in cmake, we chdir there first
-         cd cmake/
+        # Since we want to build the Dockerfile in cmake, we chdir there first
+        cd cmake/
 
-         # It's useful to print the command first
-         command="docker build --build-arg containerbase=ghcr.io/rse-ops/{% raw %}${{ matrix.containerbase }}{% endraw %} --build-arg flags={% raw %}${{ matrix.flags }}{% endraw %} -t cmake-testing-container ."
-         printf "${command}\n"
-         ${command}
+        # It's useful to print the command first
+        command="docker build --build-arg containerbase=ghcr.io/rse-ops/{% raw %}${{ matrix.containerbase }}{% endraw %} --build-arg flags={% raw %}${{ matrix.flags }}{% endraw %} -t cmake-testing-container
+          ."
+        printf "${command}\n"
+        ${command}
