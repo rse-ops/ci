@@ -47,9 +47,7 @@ runs:
       password: ${{ inputs.token }}
 
   - name: Pull Docker Layers
-    run: docker pull ${{ inputs.registry }}/${{ inputs.repo }}/${{
-      inputs.container_name
-      }} || exit 0
+    run: docker pull ${{ inputs.registry }}/${{ inputs.repo }}/${{inputs.container_name}} || exit 0
     shell: bash
 
   - name: Prepare ${{ inputs.container_name }}
@@ -82,13 +80,10 @@ runs:
     shell: bash
 
   - name: Build ${{ inputs.dockerfile }}
-    run: docker build -f ${{ env.filename }} ${{ env.bargs }} -t ${{
-      inputs.registry
-      }}/${{ inputs.repo }}/${{ env.container }} ${{ env.dockerfile_dir }}
+    run: docker build -f ${{ env.filename }} ${{ env.bargs }} -t ${{inputs.registry}}/${{ inputs.repo }}/${{ env.container }} ${{ env.dockerfile_dir }}
     shell: bash
 
   - name: Deploy
     if: ${{ inputs.deploy == 'true' || inputs.deploy == true }}
-    run: docker push ${{ inputs.registry }}/${{ inputs.repo }}/${{ env.container
-      }}
+    run: docker push ${{ inputs.registry }}/${{ inputs.repo }}/${{ env.container }}
     shell: bash
