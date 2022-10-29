@@ -15,15 +15,13 @@ jobs:
       id: dockerbuild
       with:
         root: ./cmake    # Where your Dockerfile and uptodate.yaml live        
-        flags: --all     # Build all matrix builds, and not looking for only changes or
-          updates
+        flags: --all     # Build all matrix builds, and not looking for only changes or updates
         parser: dockerbuild
 
     - name: View and Check Build Matrix Result
       env:
         result: ${{ steps.dockerbuild.outputs.dockerbuild_matrix }}
-      run: |
-        echo ${result}
+      run: echo ${result}
 
   test:
     needs:
@@ -39,4 +37,3 @@ jobs:
     steps:
     - name: Build and Test
       uses: rse-ops/ci/cmake@main
-
