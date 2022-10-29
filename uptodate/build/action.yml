@@ -25,8 +25,7 @@ inputs:
     description: GitHub token to authenticate build.
     required: true
   container_name:
-    description: Container name to build (from matrix action,
-      result.container_name)
+    description: Container name to build (from matrix action, result.container_name)
     required: true
   command_prefix:
     description: Command prefix (from matrix action, result.command_prefix)
